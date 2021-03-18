@@ -1,60 +1,44 @@
-# Boilerplate Swagger API documentation with GitHub Pages
+---
+eip: 1559
+title: Fee market change for ETH 1.0 chain
+author: Vitalik Buterin (@vbuterin), Eric Conner (@econoar), Rick Dudley (@AFDudley), Matthew Slipper (@mslipper), Ian Norden (@i-norden), Abdelhamid Bakhta (@abdelhamidbakhta)
+discussions-to: https://ethereum-magicians.org/t/eip-1559-fee-market-change-for-eth-1-0-chain/2783
+status: Review
+type: Standards Track
+category: Core
+created: 2019-04-13
+requires: 2718
+---
 
+## EIP1559 Resources
 
-## Overivew
+> Resources and Tooling
 
-This repository is a template for using the [Swagger UI](https://github.com/swagger-api/swagger-ui) to dynamically generate beautiful documentation for your API and host it for free with GitHub Pages.
+## EIP1559 Simple Summary
+A transaction pricing mechanism that includes fixed-per-block network
+fee that is burned and dynamically expands/contracts block sizes to deal
+with transient congestion.
 
-The template will periodically auto-update the Swagger UI dependency and create a pull request. See the [GitHub Actions workflow here](.github/workflows/update-swagger.yml).
+## Abstract
+We introduce a new [EIP-2718](https://raw.githubusercontent.com/ethereum/EIPs/master/EIPS/eip-2718.md) transaction type, with the
+format `0x02 || rlp([chainId, nonce, maxInclusionFeePerGas,
+maxFeePerGas, gasLimit, to, value, data, access_list, signatureYParity,
+signatureR, signatureS])`.
 
-The example API specification used by this repository can be seen hosted at [https://peter-evans.github.io/swagger-github-pages](https://peter-evans.github.io/swagger-github-pages/).
-
-## Steps to use this template
-
-1. Click the `Use this template` button above to create a new repository from this template.
-
-2. Go to the settings for your repository at `https://github.com/{github-username}/{repository-name}/settings` and enable GitHub Pages.
-
-    ![Headers](/screenshots/swagger-github-pages.png?raw=true)
-    
-3. Browse to the Swagger documentation at `https://{github-username}.github.io/{repository-name}/`.
-
-
-## Steps to manually configure in your own repository
-
-1. Download the latest stable release of the Swagger UI [here](https://github.com/swagger-api/swagger-ui/releases).
-
-2. Extract the contents and copy the "dist" directory to the root of your repository.
-
-3. Move the file "index.html" from the directory "dist" to the root of your repository.
-    ```
-    mv dist/index.html .
-    ```
-    
-4. Copy the YAML specification file for your API to the root of your repository.
-
-5. Edit [index.html](index.html) and change the `url` property to reference your local YAML file. 
-    ```javascript
-        const ui = SwaggerUIBundle({
-            url: "swagger.yaml",
-        ...
-    ```
-    Then fix any references to files in the "dist" directory.
-    ```html
-    ...
-    <link rel="stylesheet" type="text/css" href="dist/swagger-ui.css" >
-    <link rel="icon" type="image/png" href="dist/favicon-32x32.png" sizes="32x32" />
-    <link rel="icon" type="image/png" href="dist/favicon-16x16.png" sizes="16x16" />    
-    ...
-    <script src="dist/swagger-ui-bundle.js"> </script>
-    <script src="dist/swagger-ui-standalone-preset.js"> </script>    
-    ...
-    ```
-    
-6. Go to the settings for your repository at `https://github.com/{github-username}/{repository-name}/settings` and enable GitHub Pages.
-
-    ![Headers](/screenshots/swagger-github-pages.png?raw=true)
-    
-7. Browse to the Swagger documentation at `https://{github-username}.github.io/{repository-name}/`.
-
-
+There is a base fee per gas in protocol, which can move up or down each
+block according to a formula which is a function of gas used in parent
+block and gas target (formerly known as gas limit) of parent block.
+The algorithm results in the base fee per gas increasing when blocks are
+above the gas target, and decreasing when blocks are below the gas
+target.
+The base fee per gas is burned.
+Transactions specify the maximum fee per gas they are willing to give to
+miners to incentivize them to include their transaction (aka: inclusion
+fee).
+Transactions also specify the maximum fee per gas they are willing to
+pay total (aka: max fee), which covers both the inclusion fee and the
+block's network fee per gas (aka: base fee).
+The transaction will always pay the base fee per gas of the block it was
+included in, and they will pay the inclusion fee per gas set in the
+transaction, as long as the combined amount of the two fees doesn't
+exceed the transaction's maximum fee per gas.
